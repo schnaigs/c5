@@ -199,8 +199,10 @@ public class TabletServiceCommandCheckTest {
         oneOf(replicator).getStateChangeChannel();
         will(returnValue(stateChangeChannel));
 
+        allowing(replicator).getCommitNoticeChannel();
+
         oneOf(replicator).start();
-        oneOf(replicator).getQuorumId();
+        allowing(replicator).getQuorumId();
         will(returnValue("1"));
 
         allowing(c5Server).isSingleNodeMode();
@@ -238,7 +240,7 @@ public class TabletServiceCommandCheckTest {
         will(returnValue(stateChangeChannel));
 
         allowing(replicator).start();
-        oneOf(replicator).getQuorumId();
+        allowing(replicator).getQuorumId();
         will(returnValue("1"));
 
         allowing(config).writeBinaryData(with(any(String.class)), with(any(String.class)), with(any(byte[].class)));
@@ -311,8 +313,10 @@ public class TabletServiceCommandCheckTest {
       allowing(replicator).getStateChangeChannel();
       will(returnValue(stateChangeChannel));
 
+      allowing(replicator).getCommitNoticeChannel();
+
       allowing(replicator).start();
-      oneOf(replicator).getQuorumId();
+      allowing(replicator).getQuorumId();
       will(returnValue("1"));
 
       allowing(config).writeBinaryData(with(any(String.class)), with(any(String.class)), with(any(byte[].class)));
