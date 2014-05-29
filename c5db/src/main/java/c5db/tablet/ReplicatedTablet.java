@@ -130,7 +130,7 @@ public class ReplicatedTablet implements c5db.interfaces.tablet.Tablet {
 
     Channel<Replicator.State> replicatorStateChannel = replicator.getStateChannel();
     replicatorStateChannel.subscribe(tabletFiber, this::tabletStateCallback);
-    Channel<ReplicatorInstanceEvent> replicatorStateChangeChannel = replicator.getStateChangeChannel();
+    Channel<ReplicatorInstanceEvent> replicatorStateChangeChannel = replicator.getEventChannel();
     replicatorStateChangeChannel.subscribe(tabletFiber, this::tabletStateChangeCallback);
     replicator.start();
     OLogShim shim = new OLogShim(replicator, tabletFiber);

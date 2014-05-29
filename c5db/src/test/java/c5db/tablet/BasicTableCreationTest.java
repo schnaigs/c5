@@ -14,6 +14,7 @@
  *  You should have received a copy of the GNU Affero General Public License
  *  along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
 package c5db.tablet;
 
 import c5db.AsyncChannelAsserts;
@@ -156,7 +157,7 @@ public class BasicTableCreationTest {
       oneOf(replicator).getStateChannel();
       will(returnValue(stateChannel));
 
-      oneOf(replicator).getStateChangeChannel();
+      oneOf(replicator).getEventChannel();
       will(returnValue(stateChangeChannel));
 
       allowing(replicator).getCommitNoticeChannel();
@@ -198,7 +199,7 @@ public class BasicTableCreationTest {
         oneOf(replicator).getStateChannel();
         will(returnValue(stateChannel));
 
-        oneOf(replicator).getStateChangeChannel();
+        oneOf(replicator).getEventChannel();
         will(returnValue(stateChangeChannel));
 
         oneOf(replicator).start();
@@ -234,7 +235,7 @@ public class BasicTableCreationTest {
         oneOf(replicator).getStateChannel();
         will(returnValue(stateChannel));
 
-        oneOf(replicator).getStateChangeChannel();
+        oneOf(replicator).getEventChannel();
         will(returnValue(stateChangeChannel));
 
         oneOf(replicator).start();

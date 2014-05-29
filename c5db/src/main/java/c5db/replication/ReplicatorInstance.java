@@ -317,7 +317,7 @@ public class ReplicatorInstance implements Replicator {
   }
 
   @Override
-  public Channel<ReplicatorInstanceEvent> getStateChangeChannel() {
+  public Channel<ReplicatorInstanceEvent> getEventChannel() {
     return this.stateChangeChannel;
   }
 

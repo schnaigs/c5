@@ -108,7 +108,7 @@ public class ReplicatedTabletTest {
 
     future.set(replicator);
     tabletStateChannelListener = listenTo(replicatedTablet.getStateChangeChannel());
-    stateChannel= new MemoryChannel<>();
+    stateChannel = new MemoryChannel<>();
     replicatorStateChangeChannel = new MemoryChannel<>();
 
     context.checking(new Expectations() {
@@ -133,7 +133,7 @@ public class ReplicatedTabletTest {
             with(same(conf)));
         will(returnValue(region));
         then(state.is("opened"));
-        stateChannel= new MemoryChannel<>();
+        stateChannel = new MemoryChannel<>();
         replicatorStateChangeChannel = new MemoryChannel<ReplicatorInstanceEvent>();
       }
     });
@@ -142,7 +142,7 @@ public class ReplicatedTabletTest {
       allowing(replicator).getStateChannel();
       will(returnValue(stateChannel));
 
-      allowing(replicator).getStateChangeChannel();
+      allowing(replicator).getEventChannel();
       will(returnValue(replicatorStateChangeChannel));
 
       allowing(replicator).getCommitNoticeChannel();
