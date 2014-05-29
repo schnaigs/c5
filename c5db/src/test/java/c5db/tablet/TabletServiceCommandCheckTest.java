@@ -188,7 +188,7 @@ public class TabletServiceCommandCheckTest {
     ListenableFuture<Service.State> future = tabletService.start();
     future.get();
     Channel channel = new MemoryChannel();
-    Channel stateChangeChannel = new MemoryChannel();
+    Channel eventMemoryChannel = new MemoryChannel();
     context.checking(new Expectations() {
       {
         oneOf(replicationModule).createReplicator(with(any(String.class)), with(any(List.class)));
@@ -198,7 +198,7 @@ public class TabletServiceCommandCheckTest {
         will(returnValue(channel));
 
         oneOf(replicator).getEventChannel();
-        will(returnValue(stateChangeChannel));
+        will(returnValue(eventMemoryChannel));
 
         allowing(replicator).getCommitNoticeChannel();
 
@@ -238,7 +238,7 @@ public class TabletServiceCommandCheckTest {
         will(returnValue(channel));
 
         allowing(replicator).getEventChannel();
-        will(returnValue(stateChangeChannel));
+        will(returnValue(eventMemoryChannel));
 
         allowing(replicator).start();
         allowing(replicator).getQuorumId();
@@ -302,7 +302,7 @@ public class TabletServiceCommandCheckTest {
     SettableFuture<Replicator> replicationFuture = SettableFuture.create();
 
     Channel channel = new MemoryChannel();
-    Channel stateChangeChannel = new MemoryChannel();
+    Channel eventMemoryChannel = new MemoryChannel();
 
     context.checking(new Expectations() {{
       oneOf(replicationModule).createReplicator(with(any(String.class)), with(any(List.class)));
@@ -312,7 +312,7 @@ public class TabletServiceCommandCheckTest {
       will(returnValue(channel));
 
       allowing(replicator).getEventChannel();
-      will(returnValue(stateChangeChannel));
+      will(returnValue(eventMemoryChannel));
 
       allowing(replicator).getCommitNoticeChannel();
 

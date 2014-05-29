@@ -60,7 +60,7 @@ public class ReplicatedTabletTest {
   }};
 
   private MemoryChannel<Replicator.State> stateChannel;
-  private MemoryChannel<ReplicatorInstanceEvent> replicatorStateChangeChannel;
+  private MemoryChannel<ReplicatorInstanceEvent> eventMemoryChannel;
 
   final ReplicationModule replicationModule = context.mock(ReplicationModule.class);
   final Replicator replicator = context.mock(Replicator.class);
@@ -109,7 +109,7 @@ public class ReplicatedTabletTest {
     future.set(replicator);
     tabletStateChannelListener = listenTo(replicatedTablet.getStateChangeChannel());
     stateChannel = new MemoryChannel<>();
-    replicatorStateChangeChannel = new MemoryChannel<>();
+    eventMemoryChannel = new MemoryChannel<>();
 
     context.checking(new Expectations() {
       {
@@ -134,7 +134,7 @@ public class ReplicatedTabletTest {
         will(returnValue(region));
         then(state.is("opened"));
         stateChannel = new MemoryChannel<>();
-        replicatorStateChangeChannel = new MemoryChannel<ReplicatorInstanceEvent>();
+        eventMemoryChannel = new MemoryChannel<ReplicatorInstanceEvent>();
       }
     });
 
@@ -143,7 +143,7 @@ public class ReplicatedTabletTest {
       will(returnValue(stateChannel));
 
       allowing(replicator).getEventChannel();
-      will(returnValue(replicatorStateChangeChannel));
+      will(returnValue(eventMemoryChannel));
 
       allowing(replicator).getCommitNoticeChannel();
     }});
