@@ -51,8 +51,7 @@ public class Main {
   }
 
   public static C5Server startC5Server(String[] args) throws Exception {
-    String username = System.getProperty("user.name");
-
+    
     // nodeId is random initially.  Then if provided on args, we take that.
     Random nodeIdRandomizer = new Random();
     long nodeId = nodeIdRandomizer.nextLong();
@@ -61,17 +60,8 @@ public class Main {
       nodeId = Long.parseLong(args[0]);
     }
 
-    String cfgPath = "/tmp/" + username + "/c5-" + Long.toString(nodeId);
-
-    // use system properties for other config so we don't end up writing a whole command line
-    // parse framework.
-    String reqCfgPath = System.getProperty(C5ServerConstants.C5_CFG_PATH);
-    if (reqCfgPath != null) {
-      cfgPath = reqCfgPath;
-    }
-
-    ConfigDirectory cfgDir = new NioFileConfigDirectory(Paths.get(cfgPath));
-    cfgDir.setNodeIdFile(Long.toString(nodeId));
+    C5Server instance = new C5DB(nodeId);
+    instance.start();
     Random portRandomizer = new Random();
 
     int regionServerPort;
@@ -99,10 +89,9 @@ public class Main {
     int replicationPort = portRandomizer.nextInt(C5ServerConstants.REPLICATOR_PORT_RANGE)
         + C5ServerConstants.REPLICATOR_PORT_MIN;
 
-    C5Server instance = new C5DB(cfgDir);
-    instance.start();
-
     // issue startup commands here that are common/we always want:
+    StartModule startLog = new StartModule(ModuleType.Log, 0, "");
+    instance.getCommandChannel().publish(new CommandRpcRequest<>(nodeId, startLog));
 
     Set<Class<?>> modulesToStart = Sets.newHashSet(
         LogModule.class,
@@ -131,7 +120,6 @@ public class Main {
 
     return instance;
   }
-
 
   private static int getPropertyPort() {
     return Integer.parseInt(System.getProperty(C5ServerConstants.REGION_SERVER_PORT_PROPERTY_NAME));
