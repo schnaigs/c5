@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -60,8 +59,6 @@ public class Main {
       nodeId = Long.parseLong(args[0]);
     }
 
-    C5Server instance = new C5DB(nodeId);
-    instance.start();
     Random portRandomizer = new Random();
 
     int regionServerPort;
@@ -89,9 +86,8 @@ public class Main {
     int replicationPort = portRandomizer.nextInt(C5ServerConstants.REPLICATOR_PORT_RANGE)
         + C5ServerConstants.REPLICATOR_PORT_MIN;
 
-    // issue startup commands here that are common/we always want:
-    StartModule startLog = new StartModule(ModuleType.Log, 0, "");
-    instance.getCommandChannel().publish(new CommandRpcRequest<>(nodeId, startLog));
+    C5Server instance = new C5DB(nodeId);
+    instance.start();
 
     Set<Class<?>> modulesToStart = Sets.newHashSet(
         LogModule.class,
