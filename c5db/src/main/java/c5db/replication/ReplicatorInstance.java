@@ -316,7 +316,7 @@ public class ReplicatorInstance implements Replicator {
 
 
   @Override
-  public Channel<ReplicatorInstanceEvent> getStateChangeChannel() {
+  public Channel<ReplicatorInstanceEvent> getEventChannel() {
     return this.stateChangeChannel;
   }
 
@@ -415,7 +415,9 @@ public class ReplicatorInstance implements Replicator {
    * or null if it was not possible to submit the request without blocking.
    */
   @FiberOnly
-  private @Nullable ListenableFuture<Long> offerQuorumChangeRequest(QuorumConfiguration quorumConfig) {
+  private
+  @Nullable
+  ListenableFuture<Long> offerQuorumChangeRequest(QuorumConfiguration quorumConfig) {
     if (this.quorumConfig.equals(quorumConfig)) {
       logger.warn("got a request to change quorum to but I'm already in that quorum config {} ", quorumConfig);
       return null;
