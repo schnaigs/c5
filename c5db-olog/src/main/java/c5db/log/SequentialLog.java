@@ -85,15 +85,6 @@ public interface SequentialLog<E extends SequentialEntry> extends AutoCloseable 
   void truncate(long seqNum) throws IOException, LogEntryNotFound;
 
   /**
-   * Synchronously persist all previously written changes to the underlying medium.
-   * TODO remove from this interface?
-   *
-   * @throws IOException
-   */
-  @SuppressWarnings("UnusedDeclaration")
-  void sync() throws IOException;
-
-  /**
    * Release any held resources. After calling close, any other operation will throw an exception.
    *
    * @throws IOException

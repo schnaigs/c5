@@ -107,11 +107,6 @@ public class EncodedSequentialLog<E extends SequentialEntry> implements Sequenti
   }
 
   @Override
-  public void sync() throws IOException {
-    persistence.sync();
-  }
-
-  @Override
   public void close() throws IOException {
     persistence.close();
   }
