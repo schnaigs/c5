@@ -21,6 +21,7 @@ import c5db.SimpleC5ModuleServer;
 import c5db.interfaces.DiscoveryModule;
 import c5db.interfaces.GeneralizedReplicationService;
 import c5db.interfaces.LogModule;
+import c5db.interfaces.ModuleServer;
 import c5db.interfaces.ReplicationModule;
 import c5db.interfaces.log.Reader;
 import c5db.interfaces.replication.GeneralizedReplicator;
@@ -45,6 +46,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
+import static c5db.ReplicatorConstants.REPLICATOR_PORT_MIN;
 import static com.google.common.util.concurrent.Futures.allAsList;
 
 
@@ -55,6 +57,7 @@ import static com.google.common.util.concurrent.Futures.allAsList;
  */
 public class C5GeneralizedReplicationService extends AbstractService implements GeneralizedReplicationService {
   private static final int NUMBER_OF_PROCESSORS = Runtime.getRuntime().availableProcessors();
+  private static final int DISCOVERY_PORT = 54333;
 
   private final FiberSupplier fiberSupplier;
   private final Fiber serverFiber;
@@ -71,18 +74,18 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
   public C5GeneralizedReplicationService(
       Path basePath,
       long nodeId,
-      int replicatorPort,
-      DiscoveryModule nodeInfoModule,
+      NodeInfoModuleFactory nodeInfoModuleFactory,
       FiberSupplier fiberSupplier) {
 
-    this.nodeInfoModule = nodeInfoModule;
     this.fiberSupplier = fiberSupplier;
 
     serverFiber = fiberSupplier.getFiber(this::notifyFailed);
     moduleServer = new SimpleC5ModuleServer(serverFiber);
     serverFiber.start();
 
-    replicationModule = new ReplicatorService(bossGroup, workerGroup, nodeId, replicatorPort, moduleServer,
+    nodeInfoModule = nodeInfoModuleFactory.build(nodeId, DISCOVERY_PORT, workerGroup, moduleServer, fiberSupplier);
+
+    replicationModule = new ReplicatorService(bossGroup, workerGroup, nodeId, REPLICATOR_PORT_MIN, moduleServer,
         fiberSupplier, new NioQuorumFileReaderWriter(basePath));
 
     logModule = new LogService(basePath, fiberSupplier);
@@ -115,11 +118,13 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
 
   @Override
   public ListenableFuture<GeneralizedReplicator> createReplicator(String quorumId, Collection<Long> peerIds) {
-    // TODO the failure of the fiber passed to C5GeneralizedReplicator should not fail this entire service.
     return Futures.transform(
         replicationModule.createReplicator(quorumId, peerIds),
-        (Replicator replicator) ->
-            new C5GeneralizedReplicator(replicator, createAndStartFiber(this::notifyFailed)));
+        (Replicator replicator) -> {
+          replicator.start();
+          // TODO the failure of the fiber passed to C5GeneralizedReplicator should not fail this entire service.
+          return new C5GeneralizedReplicator(replicator, createAndStartFiber(this::notifyFailed));
+        });
   }
 
   @Override
@@ -137,6 +142,14 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
     serverFiber.execute(() -> disposables.add(newFiber));
     newFiber.start();
     return newFiber;
+  }
+
+  public interface NodeInfoModuleFactory {
+    DiscoveryModule build(long nodeId,
+                          int port,
+                          EventLoopGroup workerGroup,
+                          ModuleServer moduleServer,
+                          FiberSupplier fiberSupplier);
   }
 }
 
