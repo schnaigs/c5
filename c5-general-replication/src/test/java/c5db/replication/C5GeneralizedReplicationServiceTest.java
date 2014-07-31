@@ -95,6 +95,8 @@ public class C5GeneralizedReplicationServiceTest {
 
       GeneralizedReplicator replicator = serverFixture.replicator;
 
+      waitUntilReplicatorIsAvailable(replicator);
+
       List<ListenableFuture<Long>> replicateFutures = new ArrayList<ListenableFuture<Long>>() {{
         add(replicator.replicate(someData()));
         add(replicator.replicate(someData()));
@@ -106,6 +108,9 @@ public class C5GeneralizedReplicationServiceTest {
     }
   }
 
+  private void waitUntilReplicatorIsAvailable(GeneralizedReplicator replicator) throws Exception {
+    replicator.isAvailableFuture().get();
+  }
 
   private Fiber newExceptionHandlingFiber(Consumer<Throwable> throwableHandler) {
     Fiber newFiber = fiberFactory.create(new ExceptionHandlingBatchExecutor(throwableHandler));
