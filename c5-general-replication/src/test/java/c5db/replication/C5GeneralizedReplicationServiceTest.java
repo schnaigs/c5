@@ -128,8 +128,8 @@ public class C5GeneralizedReplicationServiceTest {
   }
 
   /**
-   * Runs a ReplicatorServer and handles startup and disposal for the purpose of making
-   * tests more readable
+   * Runs a C5GeneralizedReplicationService and handles startup and disposal,
+   * for the purpose of making tests more readable
    */
   private class SingleQuorumReplicationServer implements AutoCloseable {
     private static final String QUORUM_ID = "quorumId";
