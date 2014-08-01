@@ -80,7 +80,7 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
     this.fiberSupplier = fiberSupplier;
 
     serverFiber = fiberSupplier.getFiber(this::notifyFailed);
-    moduleServer = new SimpleC5ModuleServer(serverFiber);
+    moduleServer = new SimpleC5ModuleServer(serverFiber, this::notifyFailed);
     serverFiber.start();
 
     nodeInfoModule = nodeInfoModuleFactory.build(nodeId, DISCOVERY_PORT, workerGroup, moduleServer, fiberSupplier);
