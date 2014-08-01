@@ -46,7 +46,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.function.Consumer;
 
-import static c5db.ReplicatorConstants.REPLICATOR_PORT_MIN;
 import static com.google.common.util.concurrent.Futures.allAsList;
 
 
@@ -74,6 +73,7 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
   public C5GeneralizedReplicationService(
       Path basePath,
       long nodeId,
+      int replicatorPort,
       NodeInfoModuleFactory nodeInfoModuleFactory,
       FiberSupplier fiberSupplier) {
 
@@ -85,7 +85,7 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
 
     nodeInfoModule = nodeInfoModuleFactory.build(nodeId, DISCOVERY_PORT, workerGroup, moduleServer, fiberSupplier);
 
-    replicationModule = new ReplicatorService(bossGroup, workerGroup, nodeId, REPLICATOR_PORT_MIN, moduleServer,
+    replicationModule = new ReplicatorService(bossGroup, workerGroup, nodeId, replicatorPort, moduleServer,
         fiberSupplier, new NioQuorumFileReaderWriter(basePath));
 
     logModule = new LogService(basePath, fiberSupplier);
@@ -121,9 +121,11 @@ public class C5GeneralizedReplicationService extends AbstractService implements 
     return Futures.transform(
         replicationModule.createReplicator(quorumId, peerIds),
         (Replicator replicator) -> {
-          replicator.start();
           // TODO the failure of the fiber passed to C5GeneralizedReplicator should not fail this entire service.
-          return new C5GeneralizedReplicator(replicator, createAndStartFiber(this::notifyFailed));
+          Fiber fiber = createAndStartFiber(this::notifyFailed);
+          GeneralizedReplicator generalizedReplicator = new C5GeneralizedReplicator(replicator, fiber);
+          replicator.start();
+          return generalizedReplicator;
         });
   }
 

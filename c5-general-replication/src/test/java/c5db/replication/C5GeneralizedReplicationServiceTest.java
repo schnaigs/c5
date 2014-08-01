@@ -18,16 +18,17 @@
 package c5db.replication;
 
 import c5db.C5CommonTestUtil;
+import c5db.ReplicatorConstants;
 import c5db.discovery.BeaconService;
 import c5db.interfaces.replication.GeneralizedReplicator;
 import c5db.log.ReplicatorLogGenericTestUtil;
+import c5db.util.C5Futures;
 import c5db.util.ExceptionHandlingBatchExecutor;
 import c5db.util.FiberSupplier;
 import c5db.util.JUnitRuleFiberExceptions;
 import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.ListenableFuture;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
+import com.google.common.util.concurrent.SettableFuture;
 import org.hamcrest.Matcher;
 import org.jetlang.fibers.Fiber;
 import org.jetlang.fibers.PoolFiberFactory;
@@ -40,8 +41,10 @@ import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -62,15 +65,13 @@ public class C5GeneralizedReplicationServiceTest {
   private final Path baseTestPath = new C5CommonTestUtil().getDataTestDir("general-replicator-test");
 
   private final ExecutorService executorService = Executors.newFixedThreadPool(NUMBER_OF_PROCESSORS);
-  private final EventLoopGroup bossGroup = new NioEventLoopGroup(NUMBER_OF_PROCESSORS / 3);
-  private final EventLoopGroup workerGroup = new NioEventLoopGroup(NUMBER_OF_PROCESSORS / 3);
 
   private final PoolFiberFactory fiberFactory = new PoolFiberFactory(executorService);
   private final Set<Fiber> fibers = new HashSet<>();
-  private final Fiber mainTestFiber = newExceptionHandlingFiber(jUnitFiberExceptionHandler);
+  private final Fiber mainTestFiber = newFiber(jUnitFiberExceptionHandler);
 
   @Before
-  public void setupConfigDirectory() throws Exception {
+  public void startTestFiber() throws Exception {
     mainTestFiber.start();
   }
 
@@ -79,23 +80,15 @@ public class C5GeneralizedReplicationServiceTest {
     fiberFactory.dispose();
     executorService.shutdownNow();
     fibers.forEach(Fiber::dispose);
-
-    // Initiate shut down but don't wait for termination, for the sake of test speed.
-    bossGroup.shutdownGracefully();
-    workerGroup.shutdownGracefully();
   }
 
   @Test(timeout = 9000)
-  public void logsToASingleQuorumReplicatorUsingTheGeneralizedInterface() throws Exception {
-    long nodeId = 1;
+  public void logsToASingleQuorumReplicator() throws Exception {
     List<Long> peerIds = Lists.newArrayList(1L);
 
-    try (SingleQuorumReplicationServer serverFixture
-             = new SingleQuorumReplicationServer(nodeId, peerIds, this::newExceptionHandlingFiber)) {
+    try (QuorumOfReplicatorsController controller = new QuorumOfReplicatorsController(peerIds, this::newFiber)) {
 
-      GeneralizedReplicator replicator = serverFixture.replicator;
-
-      waitUntilReplicatorIsAvailable(replicator);
+      GeneralizedReplicator replicator = controller.waitUntilAReplicatorIsReady();
 
       List<ListenableFuture<Long>> replicateFutures = new ArrayList<ListenableFuture<Long>>() {{
         add(replicator.replicate(someData()));
@@ -108,11 +101,26 @@ public class C5GeneralizedReplicationServiceTest {
     }
   }
 
-  private void waitUntilReplicatorIsAvailable(GeneralizedReplicator replicator) throws Exception {
-    replicator.isAvailableFuture().get();
+  @Test(timeout = 9000)
+  public void replicatesAcrossAQuorumComposedOfThreeReplicators() throws Exception {
+    List<Long> peerIds = Lists.newArrayList(1L, 2L, 3L);
+
+    try (QuorumOfReplicatorsController controller = new QuorumOfReplicatorsController(peerIds, this::newFiber)) {
+
+      GeneralizedReplicator replicator = controller.waitUntilAReplicatorIsReady();
+
+      List<ListenableFuture<Long>> replicateFutures = new ArrayList<ListenableFuture<Long>>() {{
+        add(replicator.replicate(someData()));
+        add(replicator.replicate(someData()));
+        add(replicator.replicate(someData()));
+      }};
+
+      assertThat(allAsList(replicateFutures), resultsInAListOfLongsThat(hasSize(3)));
+      assertThat(allAsList(replicateFutures), resultsInAListOfLongsThat(isStrictlyIncreasing()));
+    }
   }
 
-  private Fiber newExceptionHandlingFiber(Consumer<Throwable> throwableHandler) {
+  private Fiber newFiber(Consumer<Throwable> throwableHandler) {
     Fiber newFiber = fiberFactory.create(new ExceptionHandlingBatchExecutor(throwableHandler));
     fibers.add(newFiber);
     return newFiber;
@@ -128,28 +136,66 @@ public class C5GeneralizedReplicationServiceTest {
   }
 
   /**
-   * Runs a C5GeneralizedReplicationService and handles startup and disposal,
+   * Runs a complete quorum of C5GeneralizedReplicationService and handles startup and disposal,
    * for the purpose of making tests more readable
    */
-  private class SingleQuorumReplicationServer implements AutoCloseable {
+  private class QuorumOfReplicatorsController implements AutoCloseable {
     private static final String QUORUM_ID = "quorumId";
 
-    public final C5GeneralizedReplicationService service;
-    public final GeneralizedReplicator replicator;
+    private final Collection<Long> peerIds;
+    private final FiberSupplier fiberSupplier;
+    private final Map<Long, C5GeneralizedReplicationService> services = new HashMap<>();
+    private final Map<Long, GeneralizedReplicator> replicators = new HashMap<>();
 
-    public SingleQuorumReplicationServer(long nodeId, Collection<Long> peerIds, FiberSupplier fiberSupplier)
-        throws Exception {
+    public QuorumOfReplicatorsController(Collection<Long> peerIds, FiberSupplier fiberSupplier) throws Exception {
+      this.peerIds = peerIds;
+      this.fiberSupplier = fiberSupplier;
 
-      service = new C5GeneralizedReplicationService(baseTestPath, nodeId, BeaconService::new, fiberSupplier);
-      service.startAndWait();
-
-      replicator = service.createReplicator(QUORUM_ID, peerIds).get();
+      createServicesForEachPeerId();
+      createReplicatorsForEachService();
     }
 
     @Override
     public void close() {
-      service.stopAndWait();
-      service.dispose();
+      services.values().forEach((service) -> {
+        service.stopAndWait();
+        service.dispose();
+      });
+    }
+
+    public GeneralizedReplicator waitUntilAReplicatorIsReady() throws Exception {
+      SettableFuture<GeneralizedReplicator> readyReplicatorFuture = SettableFuture.create();
+
+      for (GeneralizedReplicator replicator : replicators.values()) {
+        final ListenableFuture<Void> isAvailableFuture = replicator.isAvailableFuture();
+
+        C5Futures.addCallback(isAvailableFuture,
+            (ignore) -> readyReplicatorFuture.set(replicator),
+            readyReplicatorFuture::setException,
+            mainTestFiber);
+      }
+
+      return readyReplicatorFuture.get();
+    }
+
+    private void createServicesForEachPeerId() {
+      int port = ReplicatorConstants.REPLICATOR_PORT_MIN;
+
+      for (long peerId : peerIds) {
+        C5GeneralizedReplicationService service =
+            new C5GeneralizedReplicationService(baseTestPath, peerId, port, BeaconService::new, fiberSupplier);
+
+        port++;
+        service.startAndWait();
+        services.put(peerId, service);
+      }
+    }
+
+    private void createReplicatorsForEachService() throws Exception {
+      for (long peerId : peerIds) {
+        GeneralizedReplicator replicator = services.get(peerId).createReplicator(QUORUM_ID, peerIds).get();
+        replicators.put(peerId, replicator);
+      }
     }
   }
 }
