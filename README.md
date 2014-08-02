@@ -1,8 +1,8 @@
 c5
 ================
 
-C5 is a simple, scalable open source distributed database that is compatible with the HBases API. 
-It is an ACID database, of the flavour of Big Table. 
+C5 is a simple, scalable open source distributed database that is compatible with the HBase API. 
+It is a BigTable-flavoured ACID database. 
 C5 supports three types of compatibility: HBase API 
 compatability(HTable/HBaseAdmin), HFile compatibility, and HBase replication. 
 
