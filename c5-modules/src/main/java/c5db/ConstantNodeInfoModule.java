@@ -22,22 +22,26 @@ import java.util.Map;
  * This will be an implementation of DiscoveryModule that will have discovery "hard-coded,"
  * it will use a static map of nodeIds
  */
-public class SimpleC5DiscoveryModule extends AbstractService implements DiscoveryModule {
+public class ConstantNodeInfoModule extends AbstractService implements DiscoveryModule {
 
-  private final Map<Long, NodeInfo> nodeInfoMap;
+  private final Map<Long, NodeInfo> nodeInfoMap; // where/how does this map get created
+  // also should it be "immutable?" maybe? probably?
+  // also where do "fibers" go
+  // A: apparently I don't need to use fibers. makes sense, not much computation going on here. sweet.
+  // also....tests
 
-  public SimpleC5DiscoveryModule(Map<Long, NodeInfo> nodeIDs) {
-    this.nodeInfoMap = nodeIDs;
+  public ConstantNodeInfoModule(Map<Long, NodeInfo> nodeInfoMap1) {
+    this.nodeInfoMap = nodeInfoMap1;
   }
 
   @Override
   protected void doStart() {
-
+    // wtf goes here
   }
 
   @Override
   protected void doStop() {
-
+    // wtf goes HERE
   }
 
   private final RequestChannel<NodeInfoRequest, NodeInfoReply> nodeInfoRequests = new MemoryRequestChannel<>();
@@ -49,6 +53,8 @@ public class SimpleC5DiscoveryModule extends AbstractService implements Discover
 
   @Override
   public ListenableFuture<NodeInfoReply> getNodeInfo(long nodeId, ModuleType module) {
+    // copied and simplified this from BeaconService -- is it still correct? workable?
+    // it seems to make sense and it compiles, so...
     SettableFuture<NodeInfoReply> future = SettableFuture.create();
     NodeInfo peer = nodeInfoMap.get(nodeId);
     if (peer == null) {
