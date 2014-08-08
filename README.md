@@ -17,13 +17,13 @@ the server.
 
 regionServerPort=<port#>
 webServerPort=<port#>
-cluserName=<The name of the cluster>
+clusterName=<The name of the cluster>
 -Dorg.slf4j.simpleLogger.defaultLogLevel=<log level>
 -Dorg.slf4j.simpleLogger.log.org.eclipse.jetty=<log level>
 
 EXAMPLES
 Examples of how to access the server can be found in c5-client-tests. In 
-adddition, a web status console will start on port 31337. Information about
+addition, a web status console will start on port 31337. Information about
 the cluster can be found there.
 
 

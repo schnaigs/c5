@@ -8,6 +8,7 @@ import c5db.interfaces.discovery.NodeInfoRequest;
 import c5db.messages.generated.ModuleType;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.util.concurrent.AbstractService;
+import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.SettableFuture;
 import org.jetlang.channels.MemoryChannel;
@@ -15,6 +16,7 @@ import org.jetlang.channels.MemoryRequestChannel;
 import org.jetlang.channels.RequestChannel;
 import org.jetlang.channels.Subscriber;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -31,17 +33,21 @@ public class ConstantNodeInfoModule extends AbstractService implements Discovery
   // also....tests
 
   public ConstantNodeInfoModule(Map<Long, NodeInfo> nodeInfoMap1) {
-    this.nodeInfoMap = nodeInfoMap1;
+    // make a copy of the map; is there some map.copy() method or do i use a for loop or what
+    // apparently this does a shallow clone, which should be sufficient. i think.
+    this.nodeInfoMap = new HashMap<>(nodeInfoMap1);
   }
 
   @Override
   protected void doStart() {
-    // wtf goes here
+    // something something notifyStarted...that's it? anything else?
+    notifyStarted();
   }
 
   @Override
   protected void doStop() {
-    // wtf goes HERE
+    // something something notifyStopped...that's it? anything else?
+    notifyStopped();
   }
 
   private final RequestChannel<NodeInfoRequest, NodeInfoReply> nodeInfoRequests = new MemoryRequestChannel<>();
@@ -71,15 +77,11 @@ public class ConstantNodeInfoModule extends AbstractService implements Discovery
     return future;
   }
 
-  private ImmutableMap<Long, NodeInfo> getCopyOfState() {
-    return ImmutableMap.copyOf(nodeInfoMap);
-  }
-
   @Override
   public ListenableFuture<ImmutableMap<Long, NodeInfo>> getState() {
-    final SettableFuture<ImmutableMap<Long, NodeInfo>> future = SettableFuture.create();
-    future.set(this.getCopyOfState());
-    return future;
+    // are casts ok or no
+    // cause josh said Futures.immediateFuture would be a better way of doing this
+    return Futures.immediateFuture((ImmutableMap<Long, NodeInfo>)this.nodeInfoMap);
   }
 
   private final org.jetlang.channels.Channel<NewNodeVisible> newNodeVisibleChannel = new MemoryChannel<>();
