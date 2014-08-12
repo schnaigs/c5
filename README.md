@@ -17,9 +17,8 @@ the HBase replication API!
 
 Modules
 -------
-This project has (way more than) 2 major modules. C5DB (The Server) and C5DB-CLIENT (The Client). 
-(Separate document with descriptions of all/most of the modules and how they depend on each other?
-Or can that go here? Further down, maybe?)
+Listed in an order that makes sense.
+
 
 Building and running
 --------------------
