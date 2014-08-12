@@ -15,11 +15,6 @@ C5 uses the same HFiles that HBase does!
 The module hbase-replication-server runs a special server on a special port which acts like an HBase regionserver and supports
 the HBase replication API!
 
-Modules
--------
-Listed in an order that makes sense.
-
-
 Building and running
 --------------------
 To build this project, simply mvn install (with optional -DskipTests) to build the c5 daemons, client libraries and
@@ -35,6 +30,30 @@ webServerPort=<port#>
 clusterName=<The name of the cluster>
 -Dorg.slf4j.simpleLogger.defaultLogLevel=<log level>
 -Dorg.slf4j.simpleLogger.log.org.eclipse.jetty=<log level>
+
+Modules
+-------
+Listed in an order that makes sense.
+
+#### c5-proto
+
+#### c5-protostuff-codec
+
+#### c5-util
+
+#### c5-modules
+
+#### c5-replicator
+
+#### c5-olog
+
+#### c5-general-replication
+
+#### c5db-cat-olog
+
+#### c5-hbase-shim
+
+#### c5db
 
 Examples
 --------
