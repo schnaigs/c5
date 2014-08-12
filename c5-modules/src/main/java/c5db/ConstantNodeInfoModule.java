@@ -21,20 +21,20 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * This will be an implementation of DiscoveryModule that will have discovery "hard-coded,"
- * it will use a static map of nodeIds
+ * This will be an implementation of DiscoveryModule that will have discovery "hard-coded," i.e.
+ * it will use a static map of nodeIds. doesn't use fibers.
  */
 public class ConstantNodeInfoModule extends AbstractService implements DiscoveryModule {
 
   private final Map<Long, NodeInfo> nodeInfoMap; // where/how does this map get created
-  // also should it be "immutable?" maybe? probably?
+  // also should it be "immutable?" maybe? probably? A: NO.
   // also where do "fibers" go
   // A: apparently I don't need to use fibers. makes sense, not much computation going on here. sweet.
   // also....tests
 
   public ConstantNodeInfoModule(Map<Long, NodeInfo> nodeInfoMap1) {
     // make a copy of the map; is there some map.copy() method or do i use a for loop or what
-    // apparently this does a shallow clone, which should be sufficient. i think.
+    // apparently this does a shallow clone, which should be sufficient.
     this.nodeInfoMap = new HashMap<>(nodeInfoMap1);
   }
 
