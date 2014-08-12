@@ -33,19 +33,17 @@ clusterName=<The name of the cluster>
 
 Modules
 -------
-Listed in an order that makes sense.
+__c5db__ is the database server itself, and __c5db-client__ is the client.
+The server makes use of replication, logging, and module structure; this code resides in
+__c5db-replicator__, __c5-olog__, and __c5-modules__ respectively. Next we have __c5-hbase-shim__,
+__c5db-cat-olog__, and __c5-general-replication__. A shim is "a washer or thin strip of material
+used to align parts, make them fit, or reduce wear."
 
 #### c5-proto
 
 #### c5-protostuff-codec
 
 #### c5-util
-
-#### c5-modules
-
-#### c5-replicator
-
-#### c5-olog
 
 #### c5-general-replication
 
@@ -54,6 +52,8 @@ Listed in an order that makes sense.
 #### c5-hbase-shim
 
 #### c5db
+
+#### modules that start with hbase-
 
 Examples
 --------
