@@ -18,9 +18,10 @@
 package c5db;
 
 import c5db.control.ControlService;
-import c5db.discovery.BeaconService;
+import c5db.discovery.generated.Availability;
 import c5db.interfaces.C5Module;
 import c5db.interfaces.C5Server;
+import c5db.interfaces.discovery.NodeInfo;
 import c5db.interfaces.server.CommandRpcRequest;
 import c5db.interfaces.server.ConfigKeyUpdated;
 import c5db.interfaces.server.ModuleStateChange;
@@ -66,6 +67,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
@@ -95,7 +97,7 @@ public class C5DB extends AbstractService implements C5Server {
   private final int minQuorumSize;
 
   private Fiber serverFiber;
-  private Fiber beaconServiceFiber;
+  //private Fiber beaconServiceFiber;
   private PoolFiberFactory fiberPool;
   private EventLoopGroup bossGroup;
   private EventLoopGroup workerGroup;
@@ -255,9 +257,9 @@ public class C5DB extends AbstractService implements C5Server {
       bossGroup = new NioEventLoopGroup(processors / 3);
       workerGroup = new NioEventLoopGroup(processors / 3);
 
-      beaconServiceFiber = getFiber((t) -> {
-        LOG.error("Error from beaconServiceFiber:", t);
-      });
+      //beaconServiceFiber = getFiber((t) -> {
+      //  LOG.error("Error from beaconServiceFiber:", t);
+      //});
 
       commandChannel.subscribe(serverFiber, message -> {
         try {
@@ -272,7 +274,7 @@ public class C5DB extends AbstractService implements C5Server {
       serviceRegisteredChannel.subscribe(serverFiber, this::onModuleStateChange);
 
       serverFiber.start();
-      beaconServiceFiber.start();
+      //beaconServiceFiber.start();
 
       notifyStarted();
     } catch (Exception e) {
@@ -283,7 +285,7 @@ public class C5DB extends AbstractService implements C5Server {
   @Override
   protected void doStop() {
     serverFiber.dispose();
-    beaconServiceFiber.dispose();
+    //beaconServiceFiber.dispose();
     fiberPool.dispose();
 
     notifyStopped();
@@ -413,8 +415,17 @@ public class C5DB extends AbstractService implements C5Server {
     }
   }
 
+  //eventually (soon) this will DEFINITELY happen in a separate class, it does not belong here
+  //I'm just hacking about to get this working as fast as possible right now
+  private Map<Long, NodeInfo> createNodeInfoMap() {
+    Map<Long, NodeInfo> nodeInfoMap = new HashMap<>();
+    Availability availability = new Availability(this.nodeId, C5ServerConstants.DISCOVERY_PORT, new ArrayList<>(), new ArrayList<>());
+    nodeInfoMap.put(this.nodeId, new NodeInfo(availability, 1l));
+    return nodeInfoMap;
+  }
+
   @FiberOnly
-  private void startModule(final ModuleType moduleType, final int modulePort, String moduleArgv) throws Exception {
+  private void startModule(final ModuleType moduleType, final int modulePort, String moduleArg) throws Exception {
     if (allModules.containsKey(moduleType)) {
       LOG.warn("Module {} already running", moduleType);
       throw new Exception("Cant start, running, module: " + moduleType);
@@ -422,7 +433,8 @@ public class C5DB extends AbstractService implements C5Server {
 
     switch (moduleType) {
       case Discovery: {
-        C5Module module = new BeaconService(this.nodeId, modulePort, workerGroup, this, this::getFiber);
+        //C5Module module = new BeaconService(this.nodeId, modulePort, workerGroup, this, this::getFiber);
+        C5Module module = new ConstantNodeInfoModule(createNodeInfoMap());
         startServiceModule(module);
         break;
       }

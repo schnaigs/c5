@@ -77,11 +77,13 @@ public class ConstantNodeInfoModule extends AbstractService implements Discovery
     return future;
   }
 
+  private ImmutableMap<Long, NodeInfo> getCopyOfState() {
+    return ImmutableMap.copyOf(this.nodeInfoMap);
+  }
+
   @Override
   public ListenableFuture<ImmutableMap<Long, NodeInfo>> getState() {
-    // are casts ok or no
-    // cause josh said Futures.immediateFuture would be a better way of doing this
-    return Futures.immediateFuture((ImmutableMap<Long, NodeInfo>)this.nodeInfoMap);
+    return Futures.immediateFuture(getCopyOfState());
   }
 
   private final org.jetlang.channels.Channel<NewNodeVisible> newNodeVisibleChannel = new MemoryChannel<>();
