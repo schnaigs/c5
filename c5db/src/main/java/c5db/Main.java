@@ -33,7 +33,6 @@ import com.google.common.collect.Sets;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
@@ -61,17 +60,8 @@ public class Main {
       nodeId = Long.parseLong(args[0]);
     }
 
-    String cfgPath = "/tmp/" + username + "/c5-" + Long.toString(nodeId);
-
     // use system properties for other config so we don't end up writing a whole command line
     // parse framework.
-    String reqCfgPath = System.getProperty(C5ServerConstants.C5_CFG_PATH);
-    if (reqCfgPath != null) {
-      cfgPath = reqCfgPath;
-    }
-
-    ConfigDirectory cfgDir = new NioFileConfigDirectory(Paths.get(cfgPath));
-    cfgDir.setNodeIdFile(Long.toString(nodeId));
     Random portRandomizer = new Random();
 
     int regionServerPort;

@@ -415,8 +415,9 @@ public class C5DB extends AbstractService implements C5Server {
     }
   }
 
-  //eventually (soon) this will DEFINITELY happen in a separate class, it does not belong here
-  //I'm just hacking about to get this working as fast as possible right now
+  // eventually (soon) this will DEFINITELY happen in a separate class, it does not belong here
+  // I'm just hacking about to get this working as fast as possible right now
+  // this is bad and ugly :(
   private Map<Long, NodeInfo> createNodeInfoMap() {
     Map<Long, NodeInfo> nodeInfoMap = new HashMap<>();
     Availability availability = new Availability(this.nodeId, C5ServerConstants.DISCOVERY_PORT, new ArrayList<>(), new ArrayList<>());
