@@ -28,10 +28,10 @@ public class ConstantNodeInfoModule extends AbstractService implements Discovery
 
   private final Map<Long, NodeInfo> nodeInfoMap;
 
-  public ConstantNodeInfoModule(Map<Long, NodeInfo> theNodeInfoMap) {
+  public ConstantNodeInfoModule(Map<Long, NodeInfo> nodeInfoMap) {
     // make a copy of the map; is there some map.copy() method or do i use a for loop or what
     // apparently this does a shallow clone, which should be sufficient.
-    this.nodeInfoMap = new HashMap<>(theNodeInfoMap);
+    this.nodeInfoMap = new HashMap<>(nodeInfoMap);
   }
 
   @Override

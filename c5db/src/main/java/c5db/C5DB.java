@@ -106,7 +106,7 @@ public class C5DB extends AbstractService implements C5Server {
   private final Map<ModuleType, Integer> availableModulePorts = new HashMap<>();
   private ExecutorService executor;
 
-  public C5DB(Long nodeId, boolean useBeaconService) throws Exception {
+  public C5DB(Long nodeId) throws Exception {
 
     this.configDirectory = createConfigDirectory(nodeId);
 
@@ -480,8 +480,7 @@ public class C5DB extends AbstractService implements C5Server {
     DiscoveryModule discoveryModule;
     if (C5ServerConstants.USE_BEACON_SERVICE) {
       discoveryModule = new BeaconService(this.nodeId, modulePort, workerGroup, this, this::getFiber);
-    }
-    else {
+    } else {
       discoveryModule = new ConstantNodeInfoModule(createDefaultNodeInfoMap());
     }
     return discoveryModule;
@@ -489,11 +488,10 @@ public class C5DB extends AbstractService implements C5Server {
 
   private Map<Long, NodeInfo> createDefaultNodeInfoMap() {
     // Long is the nodeId
-    // NodeInfo needs a bunch of stuff: lastContactTime (long)
-    // and an Availability which needs uh nodeId, int baseNetworkPort,
+    // NodeInfo needs... lastContactTime (long)
+    // and an Availability which needs nodeId, int baseNetworkPort,
     // List<String> addresses (...what addresses?)
     // and List<ModuleDescriptor> modules
-    // fuck if I know where to get all that
     return null;
   }
 

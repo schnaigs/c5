@@ -89,7 +89,7 @@ public class Main {
     int replicationPort = portRandomizer.nextInt(C5ServerConstants.REPLICATOR_PORT_RANGE)
         + C5ServerConstants.REPLICATOR_PORT_MIN;
 
-    C5Server instance = new C5DB(nodeId, hasDiscoveryModulePreference());
+    C5Server instance = new C5DB(nodeId);
     instance.start();
 
     // issue startup commands here that are common/we always want:
@@ -145,9 +145,5 @@ public class Main {
 
   private static boolean hasControlRpcPropertyPortSet() {
     return System.getProperties().containsKey(C5ServerConstants.CONTROL_SERVER_PORT_PROPERTY_NAME);
-  }
-
-  private static boolean hasDiscoveryModulePreference() {
-    return System.getProperties().containsKey(C5ServerConstants.DISCOVERY_MODULE_PROPERTY_NAME);
   }
 }
