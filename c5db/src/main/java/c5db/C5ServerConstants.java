@@ -43,7 +43,7 @@ public class C5ServerConstants {
   public static final int DISCOVERY_PORT = 54333;
   public static final int DEFAULT_WEB_SERVER_PORT = 31337;
   public static final int CONTROL_RPC_PROPERTY_PORT = 9099;
-  public static final boolean USE_BEACON_SERVICE = true;
+  public static final boolean USE_BEACON_SERVICE = true; // TODO configure discovery module usage?
 
   public static final int REPLICATOR_PORT_MIN = 1024;
   public static final int REPLICATOR_PORT_RANGE = 30000;
@@ -55,7 +55,7 @@ public class C5ServerConstants {
   public static final String WEB_SERVER_PORT_PROPERTY_NAME = "webServerPort";
   public static final String REGION_SERVER_PORT_PROPERTY_NAME = "regionServerPort";
   public static final String CONTROL_SERVER_PORT_PROPERTY_NAME = "controlServerPort";
-  public static final String DISCOVERY_MODULE_PROPERTY_NAME = "useBeaconService";
+  public static final String DISCOVERY_MODULE_PROPERTY_NAME = "useBeaconService"; // TODO configure discovery module usage?
 
   public static final byte[] META_ROW = {1, 2, 3, 4, 5};
   public static final byte[] META_START_KEY = {0x00};
