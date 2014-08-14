@@ -54,6 +54,7 @@ public class C5ServerConstants {
   public static final String WEB_SERVER_PORT_PROPERTY_NAME = "webServerPort";
   public static final String REGION_SERVER_PORT_PROPERTY_NAME = "regionServerPort";
   public static final String CONTROL_SERVER_PORT_PROPERTY_NAME = "controlServerPort";
+  public static final String DISCOVERY_MODULE = "discoveryModule";
 
   public static final byte[] META_ROW = {1, 2, 3, 4, 5};
   public static final byte[] META_START_KEY = {0x00};
