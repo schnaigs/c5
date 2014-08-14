@@ -22,6 +22,7 @@ import c5db.discovery.BeaconService;
 import c5db.interfaces.C5Module;
 import c5db.interfaces.C5Server;
 import c5db.interfaces.DiscoveryModule;
+import c5db.interfaces.discovery.NodeInfo;
 import c5db.interfaces.server.CommandRpcRequest;
 import c5db.interfaces.server.ConfigKeyUpdated;
 import c5db.interfaces.server.ModuleStateChange;
@@ -88,7 +89,6 @@ public class C5DB extends AbstractService implements C5Server {
   private final String clusterName;
   private final long nodeId;
   private final ConfigDirectory configDirectory;
-  private boolean useBeaconService;
 
   private final Channel<CommandRpcRequest<?>> commandChannel = new MemoryChannel<>();
   private final Channel<ModuleStateChange> serviceRegisteredChannel = new MemoryChannel<>();
@@ -109,7 +109,6 @@ public class C5DB extends AbstractService implements C5Server {
   public C5DB(Long nodeId, boolean useBeaconService) throws Exception {
 
     this.configDirectory = createConfigDirectory(nodeId);
-    this.useBeaconService = useBeaconService;
 
     String data = configDirectory.getNodeId();
     long toNodeId = 0;
@@ -258,7 +257,7 @@ public class C5DB extends AbstractService implements C5Server {
       bossGroup = new NioEventLoopGroup(processors / 3);
       workerGroup = new NioEventLoopGroup(processors / 3);
 
-      if (useBeaconService) {
+      if (C5ServerConstants.USE_BEACON_SERVICE) {
         beaconServiceFiber = getFiber((t) -> {
           LOG.error("Error from beaconServiceFiber:", t);
         });
@@ -277,7 +276,7 @@ public class C5DB extends AbstractService implements C5Server {
       serviceRegisteredChannel.subscribe(serverFiber, this::onModuleStateChange);
 
       serverFiber.start();
-      if (useBeaconService) {
+      if (C5ServerConstants.USE_BEACON_SERVICE) {
         beaconServiceFiber.start();
       }
 
@@ -290,7 +289,7 @@ public class C5DB extends AbstractService implements C5Server {
   @Override
   protected void doStop() {
     serverFiber.dispose();
-    if (useBeaconService) {
+    if (C5ServerConstants.USE_BEACON_SERVICE) {
       beaconServiceFiber.dispose();
     }
     fiberPool.dispose();
@@ -479,13 +478,23 @@ public class C5DB extends AbstractService implements C5Server {
 
   private DiscoveryModule getDiscoveryModule(int modulePort) {
     DiscoveryModule discoveryModule;
-    if (useBeaconService) {
+    if (C5ServerConstants.USE_BEACON_SERVICE) {
       discoveryModule = new BeaconService(this.nodeId, modulePort, workerGroup, this, this::getFiber);
     }
     else {
-      discoveryModule = new ConstantNodeInfoModule(new HashMap<>()); // TODO make this map
+      discoveryModule = new ConstantNodeInfoModule(createDefaultNodeInfoMap());
     }
     return discoveryModule;
+  }
+
+  private Map<Long, NodeInfo> createDefaultNodeInfoMap() {
+    // Long is the nodeId
+    // NodeInfo needs a bunch of stuff: lastContactTime (long)
+    // and an Availability which needs uh nodeId, int baseNetworkPort,
+    // List<String> addresses (...what addresses?)
+    // and List<ModuleDescriptor> modules
+    // fuck if I know where to get all that
+    return null;
   }
 
   private void startServiceModule(C5Module module) {

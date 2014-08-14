@@ -148,6 +148,6 @@ public class Main {
   }
 
   private static boolean hasDiscoveryModulePreference() {
-    return System.getProperties().containsKey(C5ServerConstants.DISCOVERY_MODULE);
+    return System.getProperties().containsKey(C5ServerConstants.DISCOVERY_MODULE_PROPERTY_NAME);
   }
 }
