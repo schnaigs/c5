@@ -482,7 +482,7 @@ public class C5DB extends AbstractService implements C5Server {
       discoveryModule = new BeaconService(this.nodeId, modulePort, workerGroup, this, this::getFiber);
     } else {
       discoveryModule = new ConstantNodeInfoModule(createDefaultNodeInfoMap());
-      // TODO load in a pre-configured map from a file
+      // TODO load in a pre-configured map from a file?
     }
     return discoveryModule;
   }
